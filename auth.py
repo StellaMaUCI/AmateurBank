@@ -55,14 +55,11 @@ def register():
 
 
 # The Second View: Login(same pattern as register)
-@bp.route('/register', methods=('GET', 'POST'))
+@bp.route('/login', methods=('GET', 'POST'))
 def Login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-        firstname = request.form['firstname']
-        lastname = request.form['lastname']
-        phone = request.form['phone']
         db = get_db()
         error = None
         user = db.execute(
@@ -73,13 +70,55 @@ def Login():
         if user is None:
             error = 'Incorrect username.'
         elif not check_password_hash(user['password'], password):
+            # hashes the submitted password in the same way as the stored hash and securely compares them
             error = 'Incorrect password.'
 
         if error is None:
             session.clear()
+            """
+            session is a dict that stores data across requests. 
+            When validation succeeds, the user’s id is stored in a new session. 
+            The data is stored in a cookie that is sent to the browser, and the browser then sends it back with subsequent requests. 
+            Flask securely signs the data so that it can’t be tampered with.
+            """
             session['user_id'] = user['id']
             return redirect(url_for('index'))
 
         flash(error)
 
         return render_template('auth/login.html')
+
+
+@bp.before_app_request
+def load_logged_in_user():
+    user_id = session.get('user_id')
+    # checks if a user id is stored in the session
+    if user_id is None:
+        g.user = None
+    else:
+        g.user = get_db().execute(  # gets that user’s data from the database, storing it on g.user
+            'SELECT * FROM user WHERE id = ?', (user_id,)
+        ).fetchone()
+
+
+# Log out
+# you need to remove the user id from the session.
+# Then load_logged_in_user won’t load a user on subsequent requests.
+
+@bp.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+
+# Decorator：Require Authentication in Other Views
+# checks if a user is loaded and redirects to the login page otherwise.
+def login_required(view):
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for('auth.login'))
+
+        return view(**kwargs)
+
+    return wrapped_view
