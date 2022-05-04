@@ -5,7 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from AmateurBank.db import get_db
+from bank.db import get_db
 
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
@@ -51,7 +51,7 @@ def register():
 
         flash(error)
 
-    return render_template('auth/register.html')
+    return render_template('auth/templates/auth/register.html')
 
 
 # The Second View: Login(same pattern as register)
@@ -86,7 +86,7 @@ def Login():
 
         flash(error)
 
-        return render_template('auth/login.html')
+        return render_template('auth/templates/auth/login.html')
 
 
 @bp.before_app_request
