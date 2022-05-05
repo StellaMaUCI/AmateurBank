@@ -41,7 +41,9 @@ def create_app(test_config=None):
     # Import and register the blueprint
     from . import auth
     app.register_blueprint(auth.bp)
-
+    from . import account
+    app.register_blueprint(account.bp)
+    app.add_url_rule('/', endpoint='index')
     return app
 
 
@@ -49,5 +51,4 @@ def create_app(test_config=None):
 $ flask init-db 
 Initialized the database.
 There will now be a bank.sqlite file in the instance folder in your project.
-(I didn't see that though??)
 """
