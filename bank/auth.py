@@ -10,8 +10,9 @@ from bank.db import get_db
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
-bp = Blueprint('auth', __name__, url_prefix='/auth')
 
+bp = Blueprint('auth', __name__, url_prefix='/auth') #jinja2.exceptions.TemplateNotFound: ../base.html
+# bp = Blueprint('auth', __name__) # The requested URL was not found on the server
 
 def login_required(view):
     """View decorator that redirects anonymous users to the login page."""
@@ -40,8 +41,9 @@ def load_logged_in_user():
         )
 
 
-# The First View: Register
-@bp.route('/register', methods=('GET', 'POST'))
+# The First View: Register, Validates that the username is not already taken.
+# @bp.route('/register', methods=('GET', 'POST'))
+@bp.route('/register', methods=(['GET', 'POST']))
 def register():
     if request.method == 'POST':
         username = request.form['username']
@@ -64,11 +66,11 @@ def register():
         if error is None:
             try:
                 db.execute(
-                    "INSERT INTO user "
+                    "INSERT INTO user"
                     "(username, password, firstname, lastname, phone) "
                     "VALUES (?, ?, ?, ?, ?)",
                     (username, generate_password_hash(password), firstname, lastname, phone),
-                )
+                )  # Hashes the password for security
                 db.commit()
             except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
                 error = f"User {username} is already registered."
@@ -77,7 +79,6 @@ def register():
                 return redirect(url_for("auth.login"))
 
         flash(error)
-
     return render_template("auth/register.html")
 
 
