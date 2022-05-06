@@ -65,10 +65,9 @@ def register():
 
         if error is None:
             try:
-                db.execute(
-                    "INSERT INTO user"
-                    "(username, password, firstname, lastname, phone) "
-                    "VALUES (?, ?, ?, ?, ?)",
+                db.execute(  # SQL resolution scope choose 项目名称
+                    'INSERT INTO user (username, password, firstname, lastname, phone) '                  
+                    'VALUES (?, ?, ?, ?, ?)',
                     (username, generate_password_hash(password), firstname, lastname, phone),
                 )  # Hashes the password for security
                 db.commit()
@@ -81,10 +80,9 @@ def register():
         flash(error)
     return render_template("auth/register.html")
 
-
 # The Second View: Login(same pattern as register)
 @bp.route('/login', methods=('GET', 'POST'))
-def Login():
+def login():  # 此处应为小写
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']

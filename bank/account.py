@@ -1,3 +1,5 @@
+#https://flask.palletsprojects.com/en/2.1.x/tutorial/blog/
+
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
@@ -17,9 +19,9 @@ def index():
     passtoHTMLaccounts = []
     if g.user is not None:
         accounts = db.execute(
-            'SELECT b.id, userAccount_id, username, amount'
-            ' FROM bankAccount b JOIN userAccount u ON b.userAccount_id = u.id'
-            ' WHERE userAccount_id = ?',(g.user['id'],)
+            'SELECT b.id, user_id, username, amount'
+            ' FROM account b JOIN user u ON b.user_id = u.id'
+            ' WHERE user_id = ?',(g.user['id'],)
         ).fetchall()
         for account in accounts:
             account_instance = {}
@@ -47,7 +49,7 @@ def create():
         else:
             db = get_db()
             db.execute(
-                'INSERT INTO bankAccount (amount, userAccount_id)'
+                'INSERT INTO account (amount, user_id)'
                 ' VALUES (?, ?)',
                 (init_amount, g.user['id'])
             )
@@ -58,8 +60,8 @@ def create():
 
 def get_account(id, check_author=True):
     account = get_db().execute(
-        'SELECT b.id, userAccount_id, username, amount'
-        ' FROM bankAccount b JOIN userAccount u ON b.userAccount_id = u.id'
+        'SELECT b.id, user_id, username, amount'
+        ' FROM account b JOIN user u ON b.id = u.id'
         ' WHERE b.id = ?',
         (id,)
     ).fetchone()
@@ -100,7 +102,7 @@ def update(id):
         else:
             db = get_db()
             db.execute(
-                'UPDATE bankAccount SET amount = ?'
+                'UPDATE account SET amount = ?'
                 ' WHERE id = ?',
                 (result_amount, id)
             )
@@ -114,7 +116,7 @@ def update(id):
 def delete(id):
     get_account(id)
     db = get_db()
-    db.execute('DELETE FROM bankAccount WHERE id = ?', (id,))
+    db.execute('DELETE FROM account WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('account.index'))
 

@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="en">
-{% extends '../base.html' %}
+<!--tells Jinja that this template should replace the blocks from the base template.-->
+<!--  extends '../base.html' # Jinja2在templates运行，虽然本文件在auth里（下一级），但是extends跟base同一级 -->
+{% extends '/base.html' %}
 
 {% block header %}
   <h1>{% block title %}Log In{% endblock %}</h1>
