@@ -72,6 +72,8 @@ def register():
             error = 'Firstname is required.'
         elif not lastname:
             error = 'Lastname is required.'
+        elif phonenumber.isnumeric() == False:
+            error = 'Phone number is not numeric'
         print("step0.2")
         print("error = ",error)
         if error is None:
