@@ -42,7 +42,7 @@ def create():
 
         if not init_amount:
             error = 'Initial amount required.'
-        if not verify_amount_format(init_amount):
+        if verify_amount_format(init_amount) == False:
             error = 'Not a valid numeric input'
         if error is not None:
             flash(error)
@@ -82,7 +82,7 @@ def update(id):
         if not amount:
             error = 'Amount is required.'
 
-        if not verify_amount_format(amount):
+        if not verify_amount_format(amount) == False:
             error = 'Not a valid numeric input'
 
         result_amount = account['amount']

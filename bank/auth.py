@@ -1,16 +1,17 @@
 import functools
+import re
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from bank.account import verify_amount_format
 from bank.db import get_db
 
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
+# Don't import anything here from account.py because it will cause circular import
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')  # jinja2.exceptions.TemplateNotFound: ../base.html
 
@@ -77,8 +78,8 @@ def register():
             error = 'Username is too long, max 127.'
         elif len(password) > 127:
             error = 'Password is too long, max 127.'
-        elif verify_amount_format(initial_amount):
-            error = 'Phone number should be numbers only.'
+        elif not verify_amount_format(initial_amount):
+            error = 'Initial_amount should be numbers only.'
         print("step0.2")
         print("error = ", error)
         if error is None:
@@ -104,7 +105,7 @@ def register():
         print("step1.9")
         flash(error)
     print("before render_template auth/register.html")
-    if success_registration == True:
+    if success_registration:
         return redirect(url_for("auth.login"))
     return render_template("auth/register.html")
 
@@ -168,3 +169,12 @@ def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
     return redirect(url_for('index'))
+
+
+def verify_amount_format(amount):
+    pattern = re.compile('(0|[1-9][0-9]*)(\\.[0-9]{2})?')
+    match = pattern.fullmatch(amount)
+    if match is None:
+        return False
+    else:
+        return True
