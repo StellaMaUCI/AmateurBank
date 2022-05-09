@@ -58,6 +58,7 @@ def register():
         password = request.form['password']
         firstname = request.form['firstname']
         lastname = request.form['lastname']
+        initial_amount = request.form['initial amount']
         phone = request.form['phone']
         print("step0.02")
         db = get_db()
@@ -72,8 +73,14 @@ def register():
             error = 'Firstname is required.'
         elif not lastname:
             error = 'Lastname is required.'
+        elif not initial_amount:
+            error = 'Initial amount is required.'
         elif phonenumber.isnumeric() == False:
             error = 'Phone number is not numeric'
+        elif len(username) > 127:
+            error = 'Username is too long, max 127.'
+        elif len(password) > 127:
+            error = 'Password is too long, max 127.'
         print("step0.2")
         print("error = ",error)
         if error is None:
