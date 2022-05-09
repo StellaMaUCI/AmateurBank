@@ -5,6 +5,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
+from bank.account import verify_amount_format
 from bank.db import get_db
 
 # creates a Blueprint named 'auth'.
@@ -48,9 +49,9 @@ def load_logged_in_user():
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
     print("step0")
-    #request.method = 'POST'
+    # request.method = 'POST'
     print(request.method)
-    sucreg = False
+    success_registration = False
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -70,12 +71,14 @@ def register():
             error = 'Lastname is required.'
         elif not initial_amount:
             error = 'Initial amount is required.'
-        elif not phone.isnumeric() or None:
-            error = 'Phone number is not numeric'
+        elif not (phone.isnumeric() or len(phone) == 0):  # Phone number should be numbers only
+            error = 'Phone number should be numbers only.'
         elif len(username) > 127:
             error = 'Username is too long, max 127.'
         elif len(password) > 127:
             error = 'Password is too long, max 127.'
+        elif verify_amount_format(initial_amount):
+            error = 'Phone number should be numbers only.'
         print("step0.2")
         print("error = ", error)
         if error is None:
@@ -87,12 +90,12 @@ def register():
                     (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
                 )  # Hashes the password for security
                 db.commit()
-                error = f"User {username} is successfully registered, please login"
+                error = f"User \"{username}\" is successfully registered, please login"
                 print("step1.1")
-                sucreg = True
+                success_registration = True
             except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
                 print("step1.48")
-                error = f"User {username} is already registered, please enter another username"
+                error = f"User \"{username}\" is already registered, please enter another username"
         # else:  # url_for() generates the URL for the login view based on its name
         #     # redirect() generates a redirect response to the generated URL
         #     print("step1.5")
@@ -101,9 +104,11 @@ def register():
         print("step1.9")
         flash(error)
     print("before render_template auth/register.html")
-    if sucreg == True:
+    if success_registration == True:
         return redirect(url_for("auth.login"))
     return render_template("auth/register.html")
+
+
 #    return render_template("auth/login.html")
 
 
@@ -111,7 +116,7 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
     print("step2.0")
-    print("request.method = ",request.method)
+    print("request.method = ", request.method)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
