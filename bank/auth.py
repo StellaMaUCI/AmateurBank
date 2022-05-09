@@ -52,19 +52,14 @@ def register():
     print(request.method)
     sucreg = False
     if request.method == 'POST':
-        print("step0.0")
         username = request.form['username']
-        print("step0.01")
         password = request.form['password']
         firstname = request.form['firstname']
         lastname = request.form['lastname']
-        initial_amount = request.form['initial amount']
+        initial_amount = request.form['initial_amount']
         phone = request.form['phone']
-        print("step0.02")
         db = get_db()
-        print("step0.03")
         error = None
-        print("step0.1")
         if not username:
             error = 'Username is required.'
         elif not password:
@@ -75,42 +70,26 @@ def register():
             error = 'Lastname is required.'
         elif not initial_amount:
             error = 'Initial amount is required.'
-        elif phonenumber.isnumeric() == False:
+        elif not phone.isnumeric() or None:
             error = 'Phone number is not numeric'
         elif len(username) > 127:
             error = 'Username is too long, max 127.'
         elif len(password) > 127:
             error = 'Password is too long, max 127.'
         print("step0.2")
-        print("error = ",error)
+        print("error = ", error)
         if error is None:
             try:
                 print("step1.0")
                 db.execute(  # SQL resolution scope choose 项目名称
-                    'INSERT INTO user (username, password, firstname, lastname, phone) '
-                    'VALUES (?, ?, ?, ?, ?)',
-                    (username, generate_password_hash(password), firstname, lastname, phone),
+                    'INSERT INTO user (username, password, firstname, lastname, initial_amount, phone) '
+                    'VALUES (?, ?, ?, ?, ?, ?)',
+                    (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
                 )  # Hashes the password for security
                 db.commit()
                 error = f"User {username} is successfully registered, please login"
                 print("step1.1")
                 sucreg = True
-            # TypeError: The view function for 'auth.login' did not return a valid response.
-            # The function either returned None or ended without a return statement.
-            # To fix this error, add the code below:
-            #     user_info = db.execute(
-            #         'SELECT id FROM user WHERE username = ?', (username,)
-            #     ).fetchone()
-            #     print("step1.2")
-            #     user_id = user_info['id']
-            #     print("step1.3")
-            #     db.execute(
-            #         'INSERT INTO account (user_id)'
-            #         ' VALUES (?)', user_id
-            #     )
-            #     db.commit()
-            #     print("step1.4")
-            #     return redirect(url_for('auth.login'))
             except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
                 print("step1.48")
                 error = f"User {username} is already registered, please enter another username"
