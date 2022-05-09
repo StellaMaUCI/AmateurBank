@@ -80,6 +80,10 @@ def register():
             error = 'Password is too long, max 127.'
         elif not verify_amount_format(initial_amount):
             error = 'Initial_amount should be numbers only.'
+        elif not verify_username_format(username):
+            error = 'Username restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
+        elif not verify_password_format(password):
+            error = 'Password restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
         print("step0.2")
         print("error = ", error)
         if error is None:
@@ -172,8 +176,38 @@ def logout():
 
 
 def verify_amount_format(amount):
+    """
+* matches the previous token between zero and unlimited times, as many times as possible, giving back as needed (greedy)
+. matches any character (except for line terminators)
+{2} matches the previous token exactly 2 times
+？matches the previous token 0 or 1 time
+    """
     pattern = re.compile('(0|[1-9][0-9]*)(\\.[0-9]{2})?')
     match = pattern.fullmatch(amount)
+    if match is None:
+        return False
+    else:
+        return True
+
+
+def verify_username_format(username):
+    """
+  + matches the previous token between 1 and unlimited times, as many times as possible, giving back as needed (greedy)
+  . matches any character (except for line terminators)
+  _ matches the character _ with index 9510 (5F16 or 1378)
+  \\-\\ matches a single character in the range between \ (index 92) and \ (index 92) (case sensitive)
+      """
+    pattern = re.compile('[_\\-\\.0-9a-z]+')
+    match = pattern.fullmatch(username)
+    if match is None:
+        return False
+    else:
+        return True
+
+
+def verify_password_format(password):
+    pattern = re.compile('[_\\-\\.0-9a-z]+')
+    match = pattern.fullmatch(password)
     if match is None:
         return False
     else:
