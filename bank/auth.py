@@ -1,4 +1,5 @@
 import functools
+import re
 
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, 
@@ -11,6 +12,7 @@ from bank.db import get_db
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
+# Don't import anything here from account.py because it will cause circular import
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')  # jinja2.exceptions.TemplateNotFound: ../base.html
 
@@ -62,23 +64,18 @@ def load_logged_in_user():
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
     print("step0")
-    #request.method = 'POST'
+    # request.method = 'POST'
     print(request.method)
-    sucreg = False
+    success_registration = False
     if request.method == 'POST':
-        print("step0.0")
         username = request.form['username']
-        print("step0.01")
         password = request.form['password']
         firstname = request.form['firstname']
         lastname = request.form['lastname']
-        initial_amount = request.form['initial amount']
+        initial_amount = request.form['initial_amount']
         phone = request.form['phone']
-        print("step0.02")
         db = get_db()
-        print("step0.03")
         error = None
-        print("step0.1")
         if not username:
             error = 'Username is required.'
         elif not password:
@@ -89,45 +86,35 @@ def register():
             error = 'Lastname is required.'
         elif not initial_amount:
             error = 'Initial amount is required.'
-        elif phonenumber.isnumeric() == False:
-            error = 'Phone number is not numeric'
+        elif not (phone.isnumeric() or len(phone) == 0):  # Phone number should be numbers only
+            error = 'Phone number should be numbers only.'
         elif len(username) > 127:
             error = 'Username is too long, max 127.'
         elif len(password) > 127:
             error = 'Password is too long, max 127.'
+        elif not verify_amount_format(initial_amount):
+            error = 'Initial_amount should be numbers only.'
+        elif not verify_username_format(username):
+            error = 'Username restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
+        elif not verify_password_format(password):
+            error = 'Password restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
         print("step0.2")
-        print("error = ",error)
+        print("error = ", error)
         if error is None:
             try:
                 print("step1.0")
                 db.execute(  # SQL resolution scope choose 项目名称
-                    'INSERT INTO user (username, password, firstname, lastname, phone) '
-                    'VALUES (?, ?, ?, ?, ?)',
-                    (username, generate_password_hash(password), firstname, lastname, phone),
+                    'INSERT INTO user (username, password, firstname, lastname, initial_amount, phone) '
+                    'VALUES (?, ?, ?, ?, ?, ?)',
+                    (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
                 )  # Hashes the password for security
                 db.commit()
-                error = f"User {username} is successfully registered, please login"
+                error = f"User \"{username}\" is successfully registered, please login"
                 print("step1.1")
-                sucreg = True
-            # TypeError: The view function for 'auth.login' did not return a valid response.
-            # The function either returned None or ended without a return statement.
-            # To fix this error, add the code below:
-            #     user_info = db.execute(
-            #         'SELECT id FROM user WHERE username = ?', (username,)
-            #     ).fetchone()
-            #     print("step1.2")
-            #     user_id = user_info['id']
-            #     print("step1.3")
-            #     db.execute(
-            #         'INSERT INTO account (user_id)'
-            #         ' VALUES (?)', user_id
-            #     )
-            #     db.commit()
-            #     print("step1.4")
-            #     return redirect(url_for('auth.login'))
+                success_registration = True
             except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
                 print("step1.48")
-                error = f"User {username} is already registered, please enter another username"
+                error = f"User \"{username}\" is already registered, please enter another username"
         # else:  # url_for() generates the URL for the login view based on its name
         #     # redirect() generates a redirect response to the generated URL
         #     print("step1.5")
@@ -136,9 +123,11 @@ def register():
         print("step1.9")
         flash(error)
     print("before render_template auth/register.html")
-    if sucreg == True:
+    if success_registration:
         return redirect(url_for("auth.login"))
     return render_template("auth/register.html")
+
+
 #    return render_template("auth/login.html")
 
 
@@ -147,7 +136,7 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
     print("step2.0")
-    print("request.method = ",request.method)
+    print("request.method = ", request.method)
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
@@ -199,3 +188,42 @@ def logout():
     """Clear the current session, including the stored user id."""
     session.clear()
     return redirect(url_for('index'))
+
+
+def verify_amount_format(amount):
+    """
+* matches the previous token between zero and unlimited times, as many times as possible, giving back as needed (greedy)
+. matches any character (except for line terminators)
+{2} matches the previous token exactly 2 times
+？matches the previous token 0 or 1 time
+    """
+    pattern = re.compile('(0|[1-9][0-9]*)(\\.[0-9]{2})?')
+    match = pattern.fullmatch(amount)
+    if match is None:
+        return False
+    else:
+        return True
+
+
+def verify_username_format(username):
+    """
+  + matches the previous token between 1 and unlimited times, as many times as possible, giving back as needed (greedy)
+  . matches any character (except for line terminators)
+  _ matches the character _ with index 9510 (5F16 or 1378)
+  \\-\\ matches a single character in the range between \ (index 92) and \ (index 92) (case sensitive)
+      """
+    pattern = re.compile('[_\\-\\.0-9a-z]+')
+    match = pattern.fullmatch(username)
+    if match is None:
+        return False
+    else:
+        return True
+
+
+def verify_password_format(password):
+    pattern = re.compile('[_\\-\\.0-9a-z]+')
+    match = pattern.fullmatch(password)
+    if match is None:
+        return False
+    else:
+        return True

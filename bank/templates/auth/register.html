@@ -11,16 +11,19 @@
 
 {% block content %}
   <form method="post">
-    <label for="username">Username</label>
+    <label for="username">Username *</label>
     <input name="username" id="username" required>
-    <label for="password">Password</label>
+    <label for="password">Password *</label>
     <input type="password" name="password" id="password" required>
-    <label for="firstname">First Name</label>
+    <label for="firstname">First Name *</label>
     <input name="firstname" id="firstname" required>
-    <label for="lastname">Last Name</label>
+    <label for="lastname">Last Name *</label>
     <input name="lastname" id="lastname" required>
-	<label for="phonenumber">Phone Number</label>
+    <label for="initial_amount">Initial amount *</label>
+    <input name="initial_amount" id="initial_amount" required>
+	<label for="phone_number">Phone Number</label>
     <input name="phone" id="phone">
     <input type="submit" value="Register">
+
   </form>
 {% endblock %}

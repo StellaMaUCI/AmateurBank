@@ -8,7 +8,7 @@ CREATE TABLE user (
   firstname VARCHAR(50) NOT NULL,
   lastname VARCHAR(50) NOT NULL,
   initial_amount DECIMAL(16,2) NOT NULL,
-  phone INT(10)
+  phone INTEGER(10)
 );
 
 DROP TABLE IF EXISTS account;
