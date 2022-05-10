@@ -152,7 +152,7 @@ def login():  # 此处应为小写
         # 登录页面不显示，因为缺少get module
     if request.method == 'GET':
         username = session.get('username', None)
-
+        """Start Bad Code"""
         if username:
             query = 'SELECT id from user WHERE username="' + username + '"'
             db = get_db()
