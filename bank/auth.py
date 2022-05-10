@@ -1,7 +1,8 @@
 import functools
 
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for
+    Blueprint, flash, g, redirect, render_template, request, session, url_for, 
+    Response
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
@@ -28,6 +29,19 @@ def login_required(view):
 
     return wrapped_view
 
+#BAD CODE (VULNERABILITY #2)
+#source: https://rules.sonarsource.com/python/RSPEC-5146
+@bp.route('flask_redirect')
+def flask_redirect():
+    url = request.args["next"]
+    return redirect(url)
+@bp.route('set_location_header')
+def set_location_header():
+    url = request.args["next"]
+    response = Response("redirecting...", 302)
+    response.headers['Location'] = url  # Noncompliant
+    return response
+#END BAD CODE (VULNERABILITY #2)
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -128,6 +142,7 @@ def register():
 #    return render_template("auth/login.html")
 
 
+
 # The Second View: Login(same pattern as register)
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
@@ -163,12 +178,12 @@ def login():  # 此处应为小写
         # 登录页面不显示，因为缺少get module
     if request.method == 'GET':
         username = session.get('username', None)
-
+#BEGIN OF BAD CODE (VULNERABILITY #1)
         if username:
             query = 'SELECT id from user WHERE username="' + username + '"'
             db = get_db()
             user_id = db.execute(query).fetchone()
-
+#END BAD CODE (VULNERABILITY #1)
             if user_id['id']:
                 session['user_id'] = user_id['id']
                 return redirect(url_for('index'))
