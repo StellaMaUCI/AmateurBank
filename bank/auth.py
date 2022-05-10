@@ -2,7 +2,7 @@ import functools
 import re
 import os
 from flask import (
-    Blueprint, flash, g, redirect, render_template, request, session, url_for, 
+    Blueprint, flash, g, redirect, render_template, request, session, url_for,
     Response
 )
 from werkzeug.security import check_password_hash, generate_password_hash
@@ -31,27 +31,34 @@ def login_required(view):
 
     return wrapped_view
 
-#BAD CODE (VULNERABILITY #2)
-#source: https://rules.sonarsource.com/python/RSPEC-5146
+
+# BAD CODE (VULNERABILITY #2)
+# source: https://rules.sonarsource.com/python/RSPEC-5146
 @bp.route('flask_redirect')
 def flask_redirect():
     url = request.args["next"]
     return redirect(url)
+
+
 @bp.route('set_location_header')
 def set_location_header():
     url = request.args["next"]
     response = Response("redirecting...", 302)
-    response.headers['Location'] = url  # Noncompliant
+    response.headers['Location'] = url  # Noncompliance
     return response
-#END BAD CODE (VULNERABILITY #2)
 
-#BAD CODE (VULNERABILITY #3)
+
+# END BAD CODE (VULNERABILITY #2)
+
+# BAD CODE (VULNERABILITY #3)
 @bp.route('/ping')
 def ping():
     address = request.args.get("address")
     cmd = "ping -c 1 %s" % address
-    os.popen(cmd) # Noncompliant
-#END BAD CODE (VULNERABILITY #3)
+    os.popen(cmd)  # Noncompliant
+
+
+# END BAD CODE (VULNERABILITY #3)
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -71,6 +78,7 @@ def load_logged_in_user():
 # @bp.route('/register', methods=('GET', 'POST'))
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
+    session.clear()
     print("step0")
     # request.method = 'POST'
     print(request.method)
@@ -121,7 +129,6 @@ def register():
                 print("step1.1")
                 success_registration = True
             except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
-                print("step1.48")
                 error = f"User \"{username}\" is already registered, please enter another username"
         # else:  # url_for() generates the URL for the login view based on its name
         #     # redirect() generates a redirect response to the generated URL
@@ -137,7 +144,6 @@ def register():
 
 
 #    return render_template("auth/login.html")
-
 
 
 # The Second View: Login(same pattern as register)
@@ -175,12 +181,12 @@ def login():  # 此处应为小写
         # 登录页面不显示，因为缺少get module
     if request.method == 'GET':
         username = session.get('username', None)
-#BEGIN OF BAD CODE (VULNERABILITY #1)
+        # BEGIN OF BAD CODE (VULNERABILITY #1)
         if username:
             query = 'SELECT id from user WHERE username="' + username + '"'
             db = get_db()
             user_id = db.execute(query).fetchone()
-#END BAD CODE (VULNERABILITY #1)
+            # END BAD CODE (VULNERABILITY #1)
             if user_id['id']:
                 session['user_id'] = user_id['id']
                 return redirect(url_for('index'))
