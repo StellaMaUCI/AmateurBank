@@ -14,30 +14,21 @@ from bank.db import get_db
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
 # Don't import anything here from account.py because it will cause circular import
 
+
 bp = Blueprint('auth', __name__, url_prefix='/auth')  # jinja2.exceptions.TemplateNotFound: ../base.html
 
+# def login_required(view):
+#     """View decorator that redirects anonymous users to the login page."""
+#
+#     @functools.wraps(view)
+#     def wrapped_view(**kwargs):
+#         if g.user is None:
+#             return redirect(url_for("auth.login"))
+#
+#         return view(**kwargs)
+#
+#     return wrapped_view
 
-# bp = Blueprint('auth', __name__) # The requested URL was not found on the server
-
-def login_required(view):
-    """View decorator that redirects anonymous users to the login page."""
-
-    @functools.wraps(view)
-    def wrapped_view(**kwargs):
-        if g.user is None:
-            return redirect(url_for("auth.login"))
-
-        return view(**kwargs)
-
-    return wrapped_view
-
-
-# BAD CODE (VULNERABILITY #2)
-# source: https://rules.sonarsource.com/python/RSPEC-5146
-@bp.route('flask_redirect')
-def flask_redirect():
-    url = request.args["next"]
-    return redirect(url)
 
 
 @bp.route('set_location_header')
@@ -48,16 +39,12 @@ def set_location_header():
     return response
 
 
-# END BAD CODE (VULNERABILITY #2)
-
 # BAD CODE (VULNERABILITY #3)
 @bp.route('/ping')
 def ping():
     address = request.args.get("address")
     cmd = "ping -c 1 %s" % address
     os.popen(cmd)  # Noncompliant
-
-
 # END BAD CODE (VULNERABILITY #3)
 
 @bp.before_app_request
@@ -143,57 +130,61 @@ def register():
     return render_template("auth/register.html")
 
 
-#    return render_template("auth/login.html")
-
-
 # The Second View: Login(same pattern as register)
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
     print("step2.0")
     print("request.method = ", request.method)
+    # Bad Code (Vulnerability #2)
+    # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
     if request.method == 'POST':
+        target = request.args.get('target')
+        if target is not None:
+            return redirect(target)
         username = request.form['username']
         password = request.form['password']
         db = get_db()
         error = None
+        ''' # Good Code
         user = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()  # returns one row from the query.
         # If the query returned no results, it returns None
+'''
+        # Bad Code Start (Vulnerability #1)
+        user = None
+        password_check = db.execute(
+            'SELECT password FROM user WHERE username ="' + username + '"').fetchone()
+        if password_check is not None:
+            query = 'SELECT * FROM user WHERE username = "' + username + '" AND ' + \
+                     ('1' if check_password_hash(password_check['password'], password) else '0')
+            user = db.execute(query).fetchone()
+        if user is None or password_check is None:
+            error = 'Incorrect username or password.'
+        # END BAD CODE (VULNERABILITY #1)
 
-        if user is None:
-            error = 'Incorrect username.'
-        elif not check_password_hash(user['password'], password):
-            # hashes the submitted password in the same way as the stored hash and securely compares them
-            error = 'Incorrect password.'
-
+        # if user is None:
+        # elif not check_password_hash(user['password'], password):
+        #     # hashes the submitted password in the same way as the stored hash and securely compares them
+        #     error = 'Incorrect password.'
+        # 登录页面不显示，因为缺少get module
+    # if request.method == 'GET':
+    #     username = session.get('username', None)
+    #     # BEGIN OF BAD CODE (VULNERABILITY #1)
+    #     if username:
+    #         query = 'SELECT id from user WHERE username="' + username + '"'
+    #         db = get_db()
+    #         user_id = db.execute(query).fetchone()
+    #         # END BAD CODE (VULNERABILITY #1)
         if error is None:
             session.clear()
-            """
-            session is a dict that stores data across requests. 
-            When validation succeeds, the user’s id is stored in a new session. 
-            The data is stored in a cookie that is sent to the browser, and the browser then sends it back with subsequent requests. 
-            Flask securely signs the data so that it can’t be tampered with.
-            """
+            print(session)
             session['user_id'] = user['id']
             return redirect(url_for('index'))
         flash(error)
-        # 登录页面不显示，因为缺少get module
-    if request.method == 'GET':
-        username = session.get('username', None)
-        # BEGIN OF BAD CODE (VULNERABILITY #1)
-        if username:
-            query = 'SELECT id from user WHERE username="' + username + '"'
-            db = get_db()
-            user_id = db.execute(query).fetchone()
-            # END BAD CODE (VULNERABILITY #1)
-            if user_id['id']:
-                session['user_id'] = user_id['id']
-                return redirect(url_for('index'))
     return render_template('auth/login.html')
 
 
-# Log out
 # you need to remove the user id from the session.
 # Then load_logged_in_user won’t load a user on subsequent requests.
 

@@ -4,7 +4,7 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 
-from bank.auth import login_required
+# from bank.auth import login_required
 
 from bank.db import get_db
 
@@ -35,7 +35,7 @@ def index():
 
 
 @bp.route('/create', methods=('GET', 'POST'))
-@login_required
+# @login_required
 def create():
     if request.method == 'POST':
         init_amount = request.form['amount']
@@ -64,15 +64,13 @@ def get_account(id, check_author=True):
     account = get_db().execute(
         'SELECT a.id, user_id, username, amount'
         ' FROM account a JOIN user u ON a.id = u.id'
-        ' WHERE a.id = ?',
-        (id,)
-    ).fetchone()
+        ' WHERE a.id = ?', (id,)).fetchone()
 
     return account
 
 
 @bp.route('/<int:id>/update', methods=('GET', 'POST'))
-@login_required
+# @login_required
 def update(id):
     account = get_account(id)
 
@@ -110,7 +108,7 @@ def update(id):
 
 
 @bp.route('/<int:id>/delete', methods=('POST',))
-@login_required
+# @login_required
 def delete(id):
     get_account(id)
     db = get_db()
