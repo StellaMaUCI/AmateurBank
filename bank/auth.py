@@ -1,6 +1,6 @@
 import functools
 import re
-
+import os
 from flask import (
     Blueprint, flash, g, redirect, render_template, request, session, url_for, 
     Response
@@ -44,6 +44,14 @@ def set_location_header():
     response.headers['Location'] = url  # Noncompliant
     return response
 #END BAD CODE (VULNERABILITY #2)
+
+#BAD CODE (VULNERABILITY #3)
+@bp.route('/ping')
+def ping():
+    address = request.args.get("address")
+    cmd = "ping -c 1 %s" % address
+    os.popen(cmd) # Noncompliant
+#END BAD CODE (VULNERABILITY #3)
 
 @bp.before_app_request
 def load_logged_in_user():
