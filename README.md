@@ -11,19 +11,20 @@ It has been built with flask framework with Python.
 
 #### Step 2 Git Clone
 ```$ git clone https://github.com/StellaMaUCI/AmateurBank.git ```
-#### Step 3 Instantiate venv
+#### Step 3 Cd to AmateurBank
+#### Step 4 Instantiate venv
 ```$ python3 -m venv venv```
-#### Step 4 Active venv 
+#### Step 5 Active venv 
 ``` $source ./venv/bin/activate #$venv\Scripts\activate (if on Windows)```
-#### Step 5 Install dependencies
+#### Step 6 Install dependencies
 ```$ pip install -r "requirements.txt"```
-#### Step 6 Export the path
+#### Step 7 Export the path
 ```$ export FLASK_APP=bank  #$set instead of export (if on Windows)```
-#### Step 7 Enable development mode so you don't have to rerun each time editing:
+#### Step 8 Enable development mode so you don't have to rerun each time editing:
 ```$ export FLASK_ENV=development```
-#### Step 8 Initialize the sqlite database:
+#### Step 9 Initialize the sqlite database:
 ```$ flask init-db```
-#### Step 9 Run flask
+#### Step 10 Run flask
 ```$ flask run```
 
 ## Requirements to use this bank
