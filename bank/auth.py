@@ -7,8 +7,8 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from bank.db import get_db
-
+from db import get_db
+#from bank.db import get_db
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
@@ -46,6 +46,7 @@ def set_location_header():
 #END BAD CODE (VULNERABILITY #2)
 
 #BAD CODE (VULNERABILITY #3)
+#https://rules.sonarsource.com/python/RSPEC-2076
 @bp.route('/ping')
 def ping():
     address = request.args.get("address")
