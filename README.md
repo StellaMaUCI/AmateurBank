@@ -2,7 +2,7 @@
 ## Description
 This web application is a simple general bank applicaiton that provides basic operations. 
 Once the user successfully create the account, the user is allowed to log in.
-Once the user has successfully logged in, the user is allowed to deposit money, withdraw money, and check balance. 
+Once the user has successfully logged in, the user is allowed to deposit money, withdraw money, and check balance.   
 This bank application is deliberately injected with several types of vulnerabilities.
 It has been built with flask framework with Python.
 
@@ -14,17 +14,22 @@ It has been built with flask framework with Python.
 #### Step 3 Cd to AmateurBank
 #### Step 4 Instantiate venv
 ```$ python3 -m venv venv```
-#### Step 5 Active venv 
-``` $source ./venv/bin/activate #$venv\Scripts\activate (if on Windows)```
-#### Step 6 Install dependencies
-```$ pip install -r "requirements.txt"```
-#### Step 7 Export the path
-```$ export FLASK_APP=bank  #$set instead of export (if on Windows)```
-#### Step 8 Enable development mode so you don't have to rerun each time editing:
+#### Step 5 Activate venv 
+``` $source ./venv/bin/activate```(Unix/Mac)  
+``` $venv\Scripts\activate``` (Windows)
+#### Step 6 Export the path
+```$ export FLASK_APP=bank``` (Unix/Mac)  
+```$ set instead of export``` (Windows)
+#### Step 7 Enable development mode so you don't have to rerun each time editing:
 ```$ export FLASK_ENV=development```
-#### Step 9 Initialize the sqlite database:
-```$ flask init-db```
-#### Step 10 Run flask
+#### Step 8 Initialize the sqlite database:
+```$ flask init-db```  
+Windows: if you get >error 'flask' is not recognized as an external or internal command  
+stop and install flask by using 
+```$pip install Flask```
+After installing flask, if this is still not working, use this command 
+```$python -m flask run```
+#### Step 9 Run flask
 ```$ flask run```
 
 ## Requirements to use this bank
