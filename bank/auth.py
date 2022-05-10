@@ -7,8 +7,7 @@ from flask import (
 )
 from werkzeug.security import check_password_hash, generate_password_hash
 
-from db import get_db
-#from bank.db import get_db
+from bank.db import get_db
 # creates a Blueprint named 'auth'.
 # Like the application object, the blueprint needs to know where it’s defined, so __name__ is passed.
 # The url_prefix will be prepended to all the URLs associated with the blueprint.
