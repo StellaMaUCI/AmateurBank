@@ -16,6 +16,7 @@ from bank.db import get_db
 
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')  # jinja2.exceptions.TemplateNotFound: ../base.html
+query_userid = 'SELECT id FROM user WHERE username = ?'
 
 
 def login_required(view):
@@ -60,8 +61,7 @@ def register_username():
             error = 'Username is not valid input.'
 
         # Check if this user existed
-        query = 'SELECT id FROM user WHERE username = ?'
-        if db.execute(query, (username,)).fetchone() is not None:
+        if db.execute(query_userid, (username,)).fetchone() is not None:
             error = 'User {} is already registered.'.format(username)
 
         if error is None:
@@ -71,7 +71,7 @@ def register_username():
     return render_template('auth/register-username.html')
 
 
-# The First View: Register
+# The View: Register
 # @bp.route('/register', methods=('GET', 'POST'))
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
@@ -117,28 +117,34 @@ def register():
         if error is None:
             try:
                 print("step1.0")
+                # Put registration information into user table
                 db.execute(  # SQL resolution scope choose 项目名称
                     'INSERT INTO user (username, password, firstname, lastname, initial_amount, phone) '
                     'VALUES (?, ?, ?, ?, ?, ?)',
                     (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
                 )  # Hashes the password for security
                 db.commit()
-                error = f"User \"{username}\" is successfully registered, please login"
-                print("step1.1")
-                success_registration = True
-            except db.IntegrityError:  # sqlite3.IntegrityError will occur if the username exists
-                error = f"User \"{username}\" is already registered, please enter another username"
-        # else:  # url_for() generates the URL for the login view based on its name
-        #     # redirect() generates a redirect response to the generated URL
-        #     return redirect(url_for("auth.register"))
+
+                # Put user table pertinent information to account table
+                get_userid = db.execute(query_userid, (username,)).fetchone()
+                user_id = get_userid['id']
+                db.execute(
+                    'INSERT INTO account (user_id, amount) VALUES (?, ?)',
+                    (user_id, initial_amount),
+                )
+                db.commit()
+
+            except db.IntegrityError:
+                error = f"Sqlite3 database error"
+            else:  # url_for() generates the URL for the login view based on its name
+                return redirect(url_for("auth.login"))  # generates a redirect response to the generated URL
         flash(error)
-    print("before render_template auth/register.html")
-    if success_registration:
-        return redirect(url_for("auth.login"))
-    return render_template("auth/register.html")
+        session['username'] = username
+        print("before render_template auth/register.html', username=username")
+    return render_template('auth/register.html', username=username)
 
 
-# The Second View: Login(same pattern as register)
+# The View: Login(same pattern as register)
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
     print("step2.0")
