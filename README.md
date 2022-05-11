@@ -31,6 +31,8 @@ After installing flask, if this is still not working, use this command
 ```$python -m flask run```
 #### Step 9 Run flask
 ```$ flask run```
+#### Step 10 Open your browser, input 
+```http://localhost:5000/auth/register-username```  
 
 ## Requirements to use this bank
 ### Valid Inputs
