@@ -45,7 +45,7 @@ def load_logged_in_user():
 
 
 # User experience is too bad, we decide to make username only registration page
-@bp.route('/register-username', methods=('GET', 'POST'))
+@bp.route('/register-username', methods=(['GET', 'POST']))
 def register_username():
     if request.method == 'POST':
         username = request.form['username']
@@ -59,6 +59,11 @@ def register_username():
         elif not verify_username_format(username):
             error = 'Username is not valid input.'
 
+        # Check if this user existed
+        query = 'SELECT id FROM user WHERE username = ?'
+        if db.execute(query, (username,)).fetchone() is not None:
+            error = 'User {} is already registered.'.format(username)
+
         if error is None:
             session['username'] = username
             return redirect(url_for('auth.register', username=username))
@@ -66,17 +71,15 @@ def register_username():
     return render_template('auth/register-username.html')
 
 
-# The First View: Register, Validates that the username is not already taken.
+# The First View: Register
 # @bp.route('/register', methods=('GET', 'POST'))
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
-    session.clear()
-    print("step0")
-    # request.method = 'POST'
-    print(request.method)
+    username = request.args.get('username')
+
+    print('step 0', request.method)
     success_registration = False
     if request.method == 'POST':
-        username = request.form['username']
         password = request.form['password']
         firstname = request.form['firstname']
         lastname = request.form['lastname']
@@ -84,6 +87,8 @@ def register():
         phone = request.form['phone']
         db = get_db()
         error = None
+
+        # Flash error in the window prompting user input
         if not username:
             error = 'Username is required.'
         elif not password:
@@ -94,8 +99,9 @@ def register():
             error = 'Lastname is required.'
         elif not initial_amount:
             error = 'Initial amount is required.'
-        elif not (phone.isnumeric() or len(phone) == 0):  # Phone number should be numbers only
-            error = 'Phone number should be numbers only.'
+        elif not (phone.isnumeric() or len(phone) != 10):
+            error = 'Phone number should be numbers only and 10 digits.'
+
         elif len(username) > 127:
             error = 'Username is too long, max 127.'
         elif len(password) > 127:
@@ -103,10 +109,10 @@ def register():
         elif not verify_amount_format(initial_amount):
             error = 'Initial_amount should be numbers only.'
         elif not verify_username_format(username):
-            error = 'Username restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
+            error = 'Username has invalid characters.'
         elif not verify_password_format(password):
-            error = 'Password restricted to underscores, hyphens, dots, digits, and lowercase alphabetical characters.'
-        print("step0.2")
+            error = 'Password has invalid characters.'
+
         print("error = ", error)
         if error is None:
             try:
@@ -124,10 +130,7 @@ def register():
                 error = f"User \"{username}\" is already registered, please enter another username"
         # else:  # url_for() generates the URL for the login view based on its name
         #     # redirect() generates a redirect response to the generated URL
-        #     print("step1.5")
-        #     #return redirect(url_for("auth.login"))
         #     return redirect(url_for("auth.register"))
-        print("step1.9")
         flash(error)
     print("before render_template auth/register.html")
     if success_registration:
@@ -155,7 +158,7 @@ def login():  # 此处应为小写
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()  # returns one row from the query.
         # If the query returned no results, it returns None
-'''
+        '''
         # Bad Code Start (Vulnerability #1)
         user = None
         password_check = db.execute(
