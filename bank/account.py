@@ -4,12 +4,11 @@ from flask import (
     Blueprint, flash, g, redirect, render_template, request, url_for
 )
 
-# from bank.auth import login_required
+from bank.auth import login_required
 
 from bank.db import get_db
 
 import re
-import sys
 
 bp = Blueprint('account', __name__)
 
@@ -115,6 +114,16 @@ def delete(id):
     db.execute('DELETE FROM account WHERE id = ?', (id,))
     db.commit()
     return redirect(url_for('account.index'))
+
+
+@bp.route('/balance', methods=('GET', 'POST'))
+@login_required
+def show_balance():
+    if request.method == 'GET':
+        db = get_db()
+        balance = db.execute('SELECT amount FROM account WHERE user_id = ?', (g.user['id'],)
+                             ).fetchone()
+    return render_template('account/balance.html', balance="{:.2f}".format(balance['balance']))
 
 
 def verify_amount_format(amount):
