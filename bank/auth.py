@@ -167,9 +167,11 @@ def login():  # 此处应为小写
         ).fetchone()  # returns one row from the query.
         # If the query returned no results, it returns None
         '''
+
         # query = 'SELECT * FROM user WHERE username = ' + username + ' AND password = ' + password + ''
         # Start Bad Code (Vulnerability #2)
-        user_row = db.execute('SELECT * FROM user WHERE username =' + username + '').fetchone()
+        bad_query = 'SELECT * FROM user WHERE username = "' + username + '"'
+        user_row = db.execute(bad_query).fetchone()
         if user_row is None:
             error = 'Username is wrong.'
         elif not check_password_hash(user_row['password'], password):
