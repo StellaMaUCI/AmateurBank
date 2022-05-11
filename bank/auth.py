@@ -78,7 +78,6 @@ def register():
     username = request.args.get('username')
 
     print('step 0', request.method)
-    success_registration = False
     if request.method == 'POST':
         password = request.form['password']
         firstname = request.form['firstname']
@@ -137,6 +136,7 @@ def register():
             except db.IntegrityError:
                 error = f"Sqlite3 database error"
             else:  # url_for() generates the URL for the login view based on its name
+
                 return redirect(url_for("auth.login"))  # generates a redirect response to the generated URL
         flash(error)
         session['username'] = username
@@ -147,55 +147,55 @@ def register():
 # The View: Login(same pattern as register)
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
-    print("step2.0")
     print("request.method = ", request.method)
-    # Bad Code (Vulnerability #2)
+
+    # Start Bad Code (Vulnerability #1)
     # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
     if request.method == 'POST':
         target = request.args.get('target')
         if target is not None:
             return redirect(target)
+        # End Bad Code  (Vulnerability #1)
+
         username = request.form['username']
         password = request.form['password']
         db = get_db()
         error = None
         ''' # Good Code
-        user = db.execute(
+        user_row = db.execute(
             'SELECT * FROM user WHERE username = ?', (username,)
         ).fetchone()  # returns one row from the query.
         # If the query returned no results, it returns None
         '''
-        # Bad Code Start (Vulnerability #1)
-        user = None
-        password_check = db.execute(
-            'SELECT password FROM user WHERE username ="' + username + '"').fetchone()
-        if password_check is not None:
-            query = 'SELECT * FROM user WHERE username = "' + username + '" AND ' + \
-                    ('1' if check_password_hash(password_check['password'], password) else '0')
-            user = db.execute(query).fetchone()
-        if user is None or password_check is None:
-            error = 'Incorrect username or password.'
-        # END BAD CODE (VULNERABILITY #1)
+        # query = 'SELECT * FROM user WHERE username = ' + username + ' AND password = ' + password + ''
+        # Start Bad Code (Vulnerability #2)
+        user_row = db.execute('SELECT * FROM user WHERE username =' + username + '').fetchone()
+        if user_row is None:
+            error = 'Username is wrong.'
+        elif not check_password_hash(user_row['password'], password):
+            # hashes the submitted password in the same way as the stored hash and securely compares them
+            error = 'Password is wrong.'
+        # END BAD CODE (VULNERABILITY #2)
 
-        # if user is None:
-        # elif not check_password_hash(user['password'], password):
-        #     # hashes the submitted password in the same way as the stored hash and securely compares them
-        #     error = 'Incorrect password.'
-        # 登录页面不显示，因为缺少get module
-        # if request.method == 'GET':
-        #     username = session.get('username', None)
-        #     # BEGIN OF BAD CODE (VULNERABILITY #1)
-        #     if username:
-        #         query = 'SELECT id from user WHERE username="' + username + '"'
-        #         db = get_db()
-        #         user_id = db.execute(query).fetchone()
-        #         # END BAD CODE (VULNERABILITY #1)
         if error is None:
             session.clear()
-            print(session)
-            session['user_id'] = user['id']
+            session['user_id'] = user_row['id']
+            print("session=", session)
             return redirect(url_for('index'))
         flash(error)
+
+        # 登录页面不显示，因为缺少get
+    if request.method == 'GET':
+        # If username has been in the view, redirect to index
+        username = session.get('username', None) or (g.user and g.user['username'])
+        if username:
+            db = get_db()
+            user_id = db.execute(query_userid, (username,)).fetchone()
+
+            if user_id is not None and user_id['id']:
+                session['user_id'] = user_id['id']
+                return redirect(url_for('index'))
+
     return render_template('auth/login.html')
 
 
