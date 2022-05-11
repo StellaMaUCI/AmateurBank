@@ -17,35 +17,18 @@ from bank.db import get_db
 
 bp = Blueprint('auth', __name__, url_prefix='/auth')  # jinja2.exceptions.TemplateNotFound: ../base.html
 
-# def login_required(view):
-#     """View decorator that redirects anonymous users to the login page."""
-#
-#     @functools.wraps(view)
-#     def wrapped_view(**kwargs):
-#         if g.user is None:
-#             return redirect(url_for("auth.login"))
-#
-#         return view(**kwargs)
-#
-#     return wrapped_view
 
+def login_required(view):
+    """View decorator that redirects anonymous users to the login page."""
 
+    @functools.wraps(view)
+    def wrapped_view(**kwargs):
+        if g.user is None:
+            return redirect(url_for("auth.login"))
+        return view(**kwargs)
 
-@bp.route('set_location_header')
-def set_location_header():
-    url = request.args["next"]
-    response = Response("redirecting...", 302)
-    response.headers['Location'] = url  # Noncompliance
-    return response
+    return wrapped_view
 
-
-# BAD CODE (VULNERABILITY #3)
-@bp.route('/ping')
-def ping():
-    address = request.args.get("address")
-    cmd = "ping -c 1 %s" % address
-    os.popen(cmd)  # Noncompliant
-# END BAD CODE (VULNERABILITY #3)
 
 @bp.before_app_request
 def load_logged_in_user():
@@ -59,6 +42,28 @@ def load_logged_in_user():
         g.user = (
             get_db().execute("SELECT * FROM user WHERE id = ?", (user_id,)).fetchone()
         )
+
+
+# User experience is too bad, we decide to make username only registration page
+@bp.route('/register-username', methods=('GET', 'POST'))
+def register_username():
+    if request.method == 'POST':
+        username = request.form['username']
+        db = get_db()
+        error = None
+
+        if not username:
+            error = 'User name is required.'
+        elif len(username) > 127:
+            error = 'Username is too long, max 127.'
+        elif not verify_username_format(username):
+            error = 'Username is not valid input.'
+
+        if error is None:
+            session['username'] = username
+            return redirect(url_for('auth.register', username=username))
+        flash(error)
+    return render_template('auth/register-username.html')
 
 
 # The First View: Register, Validates that the username is not already taken.
@@ -157,7 +162,7 @@ def login():  # 此处应为小写
             'SELECT password FROM user WHERE username ="' + username + '"').fetchone()
         if password_check is not None:
             query = 'SELECT * FROM user WHERE username = "' + username + '" AND ' + \
-                     ('1' if check_password_hash(password_check['password'], password) else '0')
+                    ('1' if check_password_hash(password_check['password'], password) else '0')
             user = db.execute(query).fetchone()
         if user is None or password_check is None:
             error = 'Incorrect username or password.'
@@ -168,14 +173,14 @@ def login():  # 此处应为小写
         #     # hashes the submitted password in the same way as the stored hash and securely compares them
         #     error = 'Incorrect password.'
         # 登录页面不显示，因为缺少get module
-    # if request.method == 'GET':
-    #     username = session.get('username', None)
-    #     # BEGIN OF BAD CODE (VULNERABILITY #1)
-    #     if username:
-    #         query = 'SELECT id from user WHERE username="' + username + '"'
-    #         db = get_db()
-    #         user_id = db.execute(query).fetchone()
-    #         # END BAD CODE (VULNERABILITY #1)
+        # if request.method == 'GET':
+        #     username = session.get('username', None)
+        #     # BEGIN OF BAD CODE (VULNERABILITY #1)
+        #     if username:
+        #         query = 'SELECT id from user WHERE username="' + username + '"'
+        #         db = get_db()
+        #         user_id = db.execute(query).fetchone()
+        #         # END BAD CODE (VULNERABILITY #1)
         if error is None:
             session.clear()
             print(session)

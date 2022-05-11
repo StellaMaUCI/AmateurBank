@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="en">
+<!--tells Jinja that this template should replace the blocks from the base template.-->
+<!--  extends '../base.html' # Jinja2在templates运行，虽然本文件在auth里（下一级），但是extends跟base同一级
+ Layout变动会引起pycharm自动改变，..是pycharm自己加上的-->
+{% extends 'base.html' %}
+
+{% block header %}
+  <h1>{% block title %}Register{% endblock %}</h1>
+{% endblock %}
+
+{% block content %}
+  <form method="post">
+    <label for="username">Username *</label>
+    <input name="username" id="username" required>
+    <input type="submit" value="Next">
+
+  </form>
+{% endblock %}
