@@ -19,9 +19,10 @@ It has been built with flask framework with Python.
 ``` $venv\Scripts\activate``` (Windows)
 #### Step 6 Export the path
 ```$ export FLASK_APP=bank``` (Unix/Mac)  
-```$ set instead of export``` (Windows)
+```$ set FLASK_APP=bank``` (Windows)
 #### Step 7 Enable development mode so you don't have to rerun each time editing:
-```$ export FLASK_ENV=development```
+```$ export FLASK_ENV=development (Unix/Mac)```
+```$ set FLASK_ENV=development (Windows)```
 #### Step 8 install dependencies as you need
 ```$ pip install -r "requirements.txt"```
 #### Step 9 Initialize the sqlite database:
