@@ -5,7 +5,6 @@ from flask import (
 )
 
 from bank.auth import login_required
-
 from bank.db import get_db
 
 import re

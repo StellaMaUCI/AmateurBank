@@ -18,7 +18,6 @@ def get_db():
     return g.db
 
 
-
 def close_db(e=None):
     db = g.pop('db', None)
 
