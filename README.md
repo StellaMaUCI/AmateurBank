@@ -11,7 +11,7 @@ It has been built with flask framework with Python.
 
 #### Step 2 Git Clone
 ```$ git clone https://github.com/StellaMaUCI/AmateurBank.git ```
-#### Step 3 Cd to AmateurBank
+#### Step 3 Cd to AmateurBank directory
 #### Step 4 Instantiate venv
 ```$ python3 -m venv venv```
 #### Step 5 Activate venv 
@@ -19,19 +19,22 @@ It has been built with flask framework with Python.
 ``` $venv\Scripts\activate``` (Windows)
 #### Step 6 Export the path
 ```$ export FLASK_APP=bank``` (Unix/Mac)  
-```$ set instead of export``` (Windows)
+```$ set FLASK_APP=bank``` (Windows)
 #### Step 7 Enable development mode so you don't have to rerun each time editing:
-```$ export FLASK_ENV=development```
-#### Step 8 Initialize the sqlite database:
+```$ export FLASK_ENV=development (Unix/Mac)```
+```$ set FLASK_ENV=development (Windows)```
+#### Step 8 install dependencies as you need
+```$ pip install -r "requirements.txt"```
+#### Step 9 Initialize the sqlite database:
 ```$ flask init-db```  
 Windows: if you get >error 'flask' is not recognized as an external or internal command  
-stop and install flask by using 
+stop and install flask by using   
 ```$pip install Flask```
-After installing flask, if this is still not working, use this command 
+After installing flask, if this is still not working, use this command   
 ```$python -m flask run```
-#### Step 9 Run flask
+#### Step 10 Run flask
 ```$ flask run```
-#### Step 10 Open your browser, input 
+#### Step 11 Open your browser, input this link to register
 ```http://localhost:5000/auth/register-username```  
 
 ## Requirements to use this bank
