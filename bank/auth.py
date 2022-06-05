@@ -148,15 +148,7 @@ def register():
 @bp.route('/login', methods=('GET', 'POST'))
 def login():  # 此处应为小写
     print("request.method = ", request.method)
-
-    # Start Bad Code (Vulnerability #1)
-    # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
     if request.method == 'POST':
-        target = request.args.get('target')
-        if target is not None:
-            return redirect(target)
-        # End Bad Code  (Vulnerability #1)
-
         username = request.form['username']
         password = request.form['password']
         db = get_db()
@@ -188,7 +180,6 @@ def login():  # 此处应为小写
 
         # 登录页面不显示，因为缺少get
     if request.method == 'GET':
-        # If username has been in the view, redirect to index
         username = session.get('username', None) or (g.user and g.user['username'])
         if username:
             db = get_db()
@@ -197,8 +188,25 @@ def login():  # 此处应为小写
             if user_id is not None and user_id['id']:
                 session['user_id'] = user_id['id']
                 return redirect(url_for('index'))
+            # If username has been in the view, redirect to index
 
-    return render_template('auth/login.html')
+        # Start Bad Code (Vulnerability #1)
+        # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
+        target = request.args.get('target')
+        if target is not None:
+            return redirect(target)
+        # End Bad Code  (Vulnerability #1)
+
+            # whitelist = {'register', 'username', 'login', 'auth'}
+            # target = request.args.get('target')
+            # if target and len(target) > 0 and (target in whitelist):
+            #     print("target is not null and in whitelist")
+            # else:
+            #     print("target is not in whitelist")
+            #     return
+            # render_template('auth/login.html')
+
+        return render_template('auth/login.html')
 
 
 # you need to remove the user id from the session.
