@@ -21,16 +21,18 @@ It has been built with flask framework with Python.
 ```$ export FLASK_APP=bank``` (Unix/Mac)  
 ```$ set FLASK_APP=bank``` (Windows)
 #### Step 7 Enable development mode so you don't have to rerun each time editing:
-```$ export FLASK_ENV=development (Unix/Mac)```
+```$ export FLASK_ENV=development (Unix/Mac)```  
 ```$ set FLASK_ENV=development (Windows)```
 #### Step 8 install dependencies as you need
 ```$ pip install -r "requirements.txt"```
 #### Step 9 Initialize the sqlite database:
 ```$ flask init-db```  
-Windows: if you get >error 'flask' is not recognized as an external or internal command  
-stop and install flask by using   
-```$pip install Flask```
-After installing flask, if this is still not working, use this command   
+Windows: if you get 
+>error： 'flask' is not recognized as an external or internal command
+> 
+Stop and install flask by using:  
+```$pip install Flask```  
+After installing flask, if this is still not working, use this command     
 ```$python -m flask run```
 #### Step 10 Run flask
 ```$ flask run```
