@@ -66,7 +66,7 @@ def register_username():
 
         if error is None:
             session['username'] = username
-            return redirect(url_for('auth.register', username=username))
+            return redirect(url_for('auth.register', username_reg=username))
         flash(error)
     return render_template('auth/register-username.html')
 
@@ -75,7 +75,7 @@ def register_username():
 # @bp.route('/register', methods=('GET', 'POST'))
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
-    username = request.args.get('username')
+    username = request.args.get('username_reg')
 
     print('step 0', request.method)
     if request.method == 'POST':
@@ -187,14 +187,15 @@ def login():  # 此处应为小写
 
     # 登录页面不显示，因为缺少get
     if request.method == 'GET':
-        username = session.get('username', None) or (g.user and g.user['username'])
-        if username:
-            db = get_db()
-            user_id = db.execute(query_userid, (username,)).fetchone()
-
-            if user_id is not None and user_id['id']:
-                session['user_id'] = user_id['id']
-                return redirect(url_for('index'))
+        # username = session.get('username', None) or (g.user and g.user['username'])
+        # if username:
+        #     db = get_db()
+        #     user_id = db.execute(query_userid, (username,)).fetchone()
+        #
+        #     if user_id is not None and user_id['id']:
+        #         session['user_id'] = user_id['id']
+        if g.user is not None:
+            return redirect(url_for('index'))
             # If username has been in the view, redirect to index
 
         return render_template('auth/login.html')
