@@ -153,16 +153,15 @@ def login():  # 此处应为小写
         password = request.form['password']
         db = get_db()
         error = None
-        ''' # Good Code
-        user_row = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()  # returns one row from the query.
-        # If the query returned no results, it returns None
-        '''
+
+        # user_row = db.execute(
+        #     'SELECT * FROM user WHERE username = ?', (username,)
+        # ).fetchone()  # returns one row from the query.
+        # # If the query returned no results, it returns None
 
         # query = 'SELECT * FROM user WHERE username = ' + username + ' AND password = ' + password + ''
         # Start Bad Code (Vulnerability #2)
-        bad_query = 'SELECT * FROM user WHERE username = "' + username + '"'
+        bad_query = "SELECT * FROM user WHERE username = '" + username + "' and password= '" + password + "'"
         user_row = db.execute(bad_query).fetchone()
         if user_row is None:
             error = 'Username is wrong.'
@@ -171,14 +170,18 @@ def login():  # 此处应为小写
             error = 'Password is wrong.'
         # END BAD CODE (VULNERABILITY #2)
 
+        if user_row is None:
+            error = "Login failed."
+
         if error is None:
             session.clear()
             session['user_id'] = user_row['id']
             print("session=", session)
             return redirect(url_for('index'))
         flash(error)
+    return render_template("auth/login.html")
 
-        # 登录页面不显示，因为缺少get
+    # 登录页面不显示，因为缺少get
     if request.method == 'GET':
         username = session.get('username', None) or (g.user and g.user['username'])
         if username:
@@ -189,6 +192,8 @@ def login():  # 此处应为小写
                 session['user_id'] = user_id['id']
                 return redirect(url_for('index'))
             # If username has been in the view, redirect to index
+
+        return render_template('auth/login.html')
 
         # # Start Bad Code (Vulnerability #1)
         # # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
@@ -204,7 +209,8 @@ def login():  # 此处应为小写
             return render_template('target')
         else:
             print("target is not in whitelist, go to login page")
-            return render_template('auth/login.html')
+        return render_template('auth/login.html')
+
 
 # you need to remove the user id from the session.
 # Then load_logged_in_user won’t load a user on subsequent requests.
