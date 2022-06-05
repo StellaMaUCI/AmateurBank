@@ -190,24 +190,21 @@ def login():  # 此处应为小写
                 return redirect(url_for('index'))
             # If username has been in the view, redirect to index
 
-        # Start Bad Code (Vulnerability #1)
-        # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
+        # # Start Bad Code (Vulnerability #1)
+        # # source: https://rules.sonarsour.ce.com/python/RSPEC-5146
+        # target = request.args.get('target')
+        # if target is not None:
+        #     return redirect(target)
+        # # End Bad Code  (Vulnerability #1)
+
+        whitelist = ['login', 'auth', '5000', 'localhost', ':', '/', 'register', 'user']
         target = request.args.get('target')
-        if target is not None:
-            return redirect(target)
-        # End Bad Code  (Vulnerability #1)
-
-            # whitelist = {'register', 'username', 'login', 'auth'}
-            # target = request.args.get('target')
-            # if target and len(target) > 0 and (target in whitelist):
-            #     print("target is not null and in whitelist")
-            # else:
-            #     print("target is not in whitelist")
-            #     return
-            # render_template('auth/login.html')
-
-        return render_template('auth/login.html')
-
+        if target and len(target) > 0 and (target in whitelist):
+            print("target is not null and in whitelist")
+            return render_template('target')
+        else:
+            print("target is not in whitelist, go to login page")
+            return render_template('auth/login.html')
 
 # you need to remove the user id from the session.
 # Then load_logged_in_user won’t load a user on subsequent requests.
