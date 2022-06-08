@@ -66,6 +66,7 @@ def register_username():
 
         if error is None:
             session['username'] = username
+            # return redirect(url_for('auth.register', username=username))
             return redirect(url_for('auth.register', username_reg=username))
         flash(error)
     return render_template('auth/register-username.html')
@@ -75,6 +76,7 @@ def register_username():
 # @bp.route('/register', methods=('GET', 'POST'))
 @bp.route('/register', methods=(['GET', 'POST']))
 def register():
+    # username = request.args.get('username')
     username = request.args.get('username_reg')
 
     print('step 0', request.method)
@@ -120,7 +122,9 @@ def register():
                 db.execute(  # SQL resolution scope choose 项目名称
                     'INSERT INTO user (username, password, firstname, lastname, initial_amount, phone) '
                     'VALUES (?, ?, ?, ?, ?, ?)',
-                    (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
+                #     (username, generate_password_hash(password), firstname, lastname, initial_amount, phone),
+                # )  # Hashes the password for security
+                    (username, password, firstname, lastname, initial_amount, phone),
                 )  # Hashes the password for security
                 db.commit()
 
@@ -154,28 +158,24 @@ def login():  # 此处应为小写
         db = get_db()
         error = None
 
-        user_row = db.execute(
-            'SELECT * FROM user WHERE username = ?', (username,)
-        ).fetchone()  # returns one row from the query.
-        if user_row is None:
-            error = 'Username is wrong.'
-        elif not check_password_hash(user_row['password'], password):
-            # hashes the submitted password in the same way as the stored hash and securely compares them
-            error = 'Password is wrong.'
-
-        # # query = 'SELECT * FROM user WHERE username = ' + username + ' AND password = ' + password + ''
-        # # Start Bad Code (Vulnerability #2)
-        # bad_query = "SELECT * FROM user WHERE username = '" + username + "' and password= '" + password + "'"
-        # user_row = db.execute(bad_query).fetchone()
+        # user_row = db.execute(
+        #     'SELECT * FROM user WHERE username = ?', (username,)
+        # ).fetchone()  # returns one row from the query.
         # if user_row is None:
         #     error = 'Username is wrong.'
         # elif not check_password_hash(user_row['password'], password):
         #     # hashes the submitted password in the same way as the stored hash and securely compares them
         #     error = 'Password is wrong.'
-        # # END BAD CODE (VULNERABILITY #2)
 
+        # Start Bad Code (Vulnerability #2)
+        bad_query = "SELECT * FROM user WHERE username = '" + username + "' and password= '" + password + "'"
+        user_row = db.execute(bad_query).fetchone()
         if user_row is None:
             error = "Login failed."
+        # END BAD CODE (VULNERABILITY #2)
+
+        # if user_row is None:
+        #     error = "Login failed."
 
         if error is None:
             session.clear()

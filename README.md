@@ -1,6 +1,6 @@
 # AmateurBank
 ## Description
-This web application is a simple general bank applicaiton that provides basic operations. 
+This web application is a simple general bank application that provides basic operations. 
 Once the user successfully create the account, the user is allowed to log in.
 Once the user has successfully logged in, the user is allowed to deposit money, withdraw money, and check balance.   
 This bank application is deliberately injected with several types of vulnerabilities.
